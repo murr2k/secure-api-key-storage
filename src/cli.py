@@ -309,7 +309,17 @@ class KeyManager:
 @click.group()
 @click.pass_context
 def cli(ctx):
-    """Secure Key Management CLI - Manage your API keys with encryption."""
+    """Secure Key Management CLI - Manage your API keys with encryption.
+    
+    Examples:
+        cli.py setup                    # Initialize the key manager
+        cli.py add github token         # Add a GitHub API key
+        cli.py list                     # List all keys
+        cli.py list github              # List GitHub keys only
+        cli.py get github token         # Retrieve a specific key
+        cli.py rotate github token      # Rotate a key
+        cli.py remove github token      # Remove a key
+    """
     ctx.ensure_object(dict)
 
 
@@ -404,10 +414,15 @@ def rotate(service, key_name, new_value):
         console.print(f"[red]{e}[/red]")
 
 
-@cli.command()
-@click.option('--service', '-s', help='Filter by service')
-def list(service):
-    """List configured services and keys."""
+@cli.command(name='list')
+@click.argument('service', required=False)
+def list_keys(service):
+    """List configured services and keys.
+    
+    Usage:
+        cli.py list              # List all services and keys
+        cli.py list github       # List only github keys
+    """
     manager = _get_manager()
     
     services = manager.list_services()

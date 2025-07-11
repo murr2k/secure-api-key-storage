@@ -303,6 +303,36 @@ class KeyManager:
             backups.append(backup_info)
         
         return sorted(backups, key=lambda x: x['created'], reverse=True)
+    
+    def change_master_password(self, old_password: str, new_password: str) -> bool:
+        """Change the master password and re-encrypt all keys."""
+        # Verify old password
+        if not self.unlock(old_password):
+            return False
+        
+        # Load all current keys
+        keys = self._load_keys()
+        
+        # Create backup before changing password
+        backup_name = f"pre_password_change_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.backup(backup_name)
+        
+        # Generate new salt
+        new_salt = os.urandom(16)
+        
+        # Derive new key
+        new_key = self._derive_key(new_password, new_salt)
+        self.cipher = Fernet(new_key)
+        
+        # Save keys with new encryption
+        self._save_keys(keys)
+        
+        # Update config with new salt
+        config = self._load_config()
+        config['salt'] = base64.b64encode(new_salt).decode()
+        self._save_config(config)
+        
+        return True
 
 
 # CLI Commands using Click
@@ -319,6 +349,9 @@ def cli(ctx):
         cli.py get github token         # Retrieve a specific key
         cli.py rotate github token      # Rotate a key
         cli.py remove github token      # Remove a key
+        cli.py change-password          # Change master password
+        cli.py backup                   # Create a backup
+        cli.py restore <backup-name>    # Restore from backup
     """
     ctx.ensure_object(dict)
 
@@ -519,6 +552,62 @@ def restore(backup_name):
             console.print(f"[green]✓ Restored from backup '{backup_name}'[/green]")
         else:
             console.print(f"[red]Backup '{backup_name}' not found[/red]")
+
+
+@cli.command('change-password')
+def change_password():
+    """Change the master password."""
+    console.print(Panel("[bold cyan]Change Master Password[/bold cyan]"))
+    
+    # Check if initialized
+    if not CONFIG_FILE.exists():
+        console.print("[red]Key manager not initialized. Run 'key-manager setup' first.[/red]")
+        return
+    
+    # Get current password
+    current_password = getpass.getpass("Current master password: ")
+    
+    # Create manager and verify current password
+    manager = KeyManager()
+    if not manager.unlock(current_password):
+        console.print("[red]Invalid current password[/red]")
+        return
+    
+    # Get new password
+    console.print("\n[yellow]Enter your new master password:[/yellow]")
+    new_password = getpass.getpass("New master password: ")
+    
+    if len(new_password) < 8:
+        console.print("[red]Password must be at least 8 characters long[/red]")
+        return
+    
+    # Confirm new password
+    confirm_password = getpass.getpass("Confirm new master password: ")
+    
+    if new_password != confirm_password:
+        console.print("[red]Passwords do not match[/red]")
+        return
+    
+    # Warn about the importance of remembering the password
+    console.print("\n[yellow]⚠️  WARNING: Make sure to remember your new password![/yellow]")
+    console.print("If you forget it, you will lose access to all your stored keys.")
+    
+    if not Confirm.ask("\n[bold]Do you want to proceed with changing the master password?[/bold]"):
+        console.print("[yellow]Password change cancelled[/yellow]")
+        return
+    
+    # Change the password
+    console.print("\n[cyan]Changing master password...[/cyan]")
+    
+    try:
+        if manager.change_master_password(current_password, new_password):
+            console.print("[green]✓ Master password changed successfully![/green]")
+            console.print("[green]✓ Automatic backup created[/green]")
+            console.print("\n[yellow]Please use your new password for all future operations.[/yellow]")
+        else:
+            console.print("[red]Failed to change master password[/red]")
+    except Exception as e:
+        console.print(f"[red]Error changing password: {e}[/red]")
 
 
 @cli.command()

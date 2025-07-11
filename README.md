@@ -59,6 +59,15 @@ python src/cli.py list
 
 # Rotate a key
 python src/cli.py rotate github_token
+
+# Change master password
+python src/cli.py change-password
+
+# Create a backup
+python src/cli.py backup
+
+# Restore from backup
+python src/cli.py restore backup_name
 ```
 
 ### Python API Usage
@@ -213,9 +222,10 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 
 1. **Never commit your master key** - Use environment variables
 2. **Rotate keys regularly** - Use the built-in rotation feature
-3. **Backup your keys** - Use the export feature with encryption
-4. **Use strong master keys** - Minimum 16 characters with mixed case and symbols
-5. **Monitor access logs** - Review audit logs regularly
+3. **Change master password periodically** - Use `change-password` command
+4. **Backup your keys** - Use the export feature with encryption
+5. **Use strong master keys** - Minimum 16 characters with mixed case and symbols
+6. **Monitor access logs** - Review audit logs regularly
 
 ## 🐛 Known Issues
 

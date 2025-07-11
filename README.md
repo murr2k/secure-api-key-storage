@@ -27,7 +27,7 @@ A production-ready, enterprise-grade secure storage system for API keys with sup
 - **CLI Tool** - Feature-rich command-line interface
 - **Python Library** - Programmatic API for automation
 - **Interactive Mode** - REPL with auto-completion
-- **Web UI** - (Coming soon)
+- **Web Dashboard** - Modern Next.js dashboard with real-time analytics
 
 ## 🚀 Quick Start
 
@@ -78,6 +78,30 @@ github = GitHubIntegration(storage)
 user_info = github.get_user_info()
 ```
 
+### Web Dashboard
+
+The project includes a modern web dashboard for visual key management:
+
+```bash
+# Start the backend API
+cd dashboard/backend
+./start.sh  # or: uvicorn main:app --reload
+
+# Start the frontend (in another terminal)
+cd dashboard/frontend
+npm install
+npm run dev
+```
+
+Access the dashboard at http://localhost:3000
+
+Features:
+- 📊 Real-time analytics and statistics
+- 🔑 Visual key management interface
+- 📝 Live audit log streaming
+- 📱 Responsive design for all devices
+- 🔐 JWT authentication with secure sessions
+
 ## 📁 Project Structure
 
 ```
@@ -96,6 +120,10 @@ secure-api-key-storage/
 │   ├── test_security.py       # Security tests
 │   ├── test_integration.py    # Integration tests
 │   └── test_performance.py    # Performance benchmarks
+├── dashboard/                 # Web dashboard
+│   ├── backend/               # FastAPI backend
+│   ├── frontend/              # Next.js frontend
+│   └── docs/                  # Dashboard documentation
 ├── examples/                  # Usage examples
 ├── docs/                      # Additional documentation
 └── requirements.txt           # Python dependencies
